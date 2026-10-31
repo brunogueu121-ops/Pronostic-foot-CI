@@ -54,6 +54,56 @@ function requireConfigured(req, res, next) {
 function requireAdmin(req, res, next) {
   if (!req.session?.admin) {
     return res.status(401).json({
+      // LISTE DES COMPETITIONS DISPONIBLES
+app.get("/api/competitions", async (req, res) => {
+  try {
+    const token = process.env.FOOTBALL_DATA_TOKEN;
+
+    if (!token) {
+      return res.status(503).json({
+        error: "Source sportive non configurée."
+      });
+    }
+
+    const response = await fetch(
+      "https://api.football-data.org/v4/competitions",
+      {
+        headers: {
+          "X-Auth-Token": token
+        },
+        signal: AbortSignal.timeout(12000)
+      }
+    );
+
+    if (!response.ok) {
+      return res.status(502).json({
+        error: "Impossible de récupérer les compétitions."
+      });
+    }
+
+    const data = await response.json();
+
+    const competitions = (data.competitions || []).map(item => ({
+      id: item.id,
+      name: item.name,
+      code: item.code,
+      area: item.area?.name || ""
+    }));
+
+    res.json({
+      source: "football-data.org",
+      total: competitions.length,
+      competitions
+    });
+
+  } catch (error) {
+    console.error("Competitions error:", error);
+
+    res.status(500).json({
+      error: "Erreur de récupération des compétitions."
+    });
+  }
+});
       error: "Connexion administrateur requise."
     });
   }
