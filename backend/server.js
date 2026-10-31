@@ -237,4 +237,4 @@ app.post("/api/admin/predictions", requireAdmin, (req, res) => {
 app.listen(PORT, () => {
   console.log(`PronosticFoot CI API démarrée sur le port ${PORT}`);
 });
-      
+        
